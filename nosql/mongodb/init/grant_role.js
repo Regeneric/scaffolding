@@ -1,0 +1,1 @@
+db.grantRolesToUser('root', [{role: 'root', db: 'admin'}]);
