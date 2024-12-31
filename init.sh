@@ -78,7 +78,7 @@ idate() {
 }
 
 log() {
-  fi [[ ! -d "$LOG_DIR" ]]; then
+  if [[ ! -d "$LOG_DIR" ]]; then
     mkdir -p "$LOG_DIR"
   fi
 
@@ -101,7 +101,13 @@ dialog_wait() {
 }
 
 dialog_input() {
-  local r=$(dialog --title "$1" --inputbox "$2" 8 28 "${r}" 3>&1 1>&2 2>&3 3>&-)
+  local r=""
+  if [[ "$3" == "password" ]]; then
+    r=$(dialog --title "$1" --insecure --passwordbox "$2" 8 28 "${r}" 3>&1 1>&2 2>&3 3>&-)
+  else
+    r=$(dialog --title "$1" --inputbox "$2" 8 28 "${r}" 3>&1 1>&2 2>&3 3>&-)
+  fi
+
   echo "$r"
 }
 
@@ -112,6 +118,7 @@ install_missing_software() {
 
   case "${DISTRO}" in
     ubuntu | debian | linuxmint | pop | elementary)
+      clear
       echo "$sudo_pwd" | sudo apt update 
       echo "$sudo_pwd" | sudo apt install -y "${packages[@]}"
     ;;
@@ -123,12 +130,15 @@ install_missing_software() {
         exit 1
       fi
 
+      clear
       echo "$sudo_pwd" | sudo pacman -S --noconfirm "${packages[@]}"
     ;;
     fedora | centos | rhel)
+      clear
       echo "$sudo_pwd" | sudo dnf install -y "${packages[@]}"
     ;;
     suse | opensuse | opensuse-leap)
+      clear
       echo "$sudo_pwd" | sudo zypper refresh
       echo "$sudo_pwd" | sudo zypper install -y "${packages[@]}"
     ;;
@@ -210,6 +220,7 @@ start_container() {
 
 
 main() {
+  if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
     clear
@@ -342,20 +353,20 @@ main() {
     local redis_host=$(dialog_input "Database Definition" "Enter Redis host")
   fi
 
-  local sql_database_name=$(dialog_input "SQL Credentials" Enter SQL database name)
+  local sql_database_name=$(dialog_input "SQL Credentials" "Enter SQL database name")
   local sql_user_name=$(dialog_input "SQL Credentials" "Enter SQL user name")
-  local sql_user_password=$(dialog_input "SQL Credentials" "Enter SQL user password")
-  local sql_root_password=$(dialog_input "SQL Credentials" "Enter SQL root password")
+  local sql_user_password=$(dialog_input "SQL Credentials" "Enter SQL user password" "password")
+  local sql_root_password=$(dialog_input "SQL Credentials" "Enter SQL root password" "password")
 
   local mongo_database_name=$(dialog_input "MongoDB Credentials" "Enter MongoDB database name")
   local mongo_user_name=$(dialog_input "MongoDB Credentials" "Enter MongoDB user name")
-  local mongo_user_password=$(dialog_input "MongoDB Credentials" "Enter MongoDB user password")
-  local mongo_root_password=$(dialog_input "MongoDB Credentials" "Enter MongoDB root password")
+  local mongo_user_password=$(dialog_input "MongoDB Credentials" "Enter MongoDB user password" "password")
+  local mongo_root_password=$(dialog_input "MongoDB Credentials" "Enter MongoDB root password" "password")
 
   local rabbitmq_user_name=$(dialog_input "RabbitMQ Credentials" "Enter RabbitMQ user name")
-  local rabbitmq_user_password=$(dialog_input "RabbitMQ Credentials" "Enter RabbitMQ user password")
+  local rabbitmq_user_password=$(dialog_input "RabbitMQ Credentials" "Enter RabbitMQ user password" "password")
 
-  local redis_user_password=$(dialog_input "Redis Credentials" "Enter Redis user password")
+  local redis_user_password=$(dialog_input "Redis Credentials" "Enter Redis user password" "password")
 
 
   local current_path=$(pwd)
@@ -407,7 +418,7 @@ EOF
   # -- NOSQL 
   # -----------------------------------------------------------------------------
 
-  local mongo_data_dir="nosql/mongodb/backup"
+  local mongo_data_dir="nosql/mongodb/data"
   if [[ ! -d "$mongo_data_dir" ]]; then 
     mkdir -p "$mongo_data_dir" 
     log "Directory "$mongo_data_dir" has been created"  
