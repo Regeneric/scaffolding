@@ -187,10 +187,24 @@ check_docker() {
   else return 1; fi
 }
 
+check_docker_compose() {
+  if command -v docker-compose >/dev/null 2>&1; then
+    log "Docker Compose has been found"
+    return 0
+  else return 1; fi
+}
+
 # Check if Podman is installed
 check_podman() {
   if command -v podman >/dev/null 2>&1; then
     log "Podman has been found"
+    return 0
+  else return 1; fi
+}
+
+check_podman_compose() {
+  if command -v podman-compose >/dev/null 2>&1; then
+    log "Podman Compose has been found"
     return 0
   else return 1; fi
 }
@@ -243,6 +257,13 @@ main() {
     CONTAINER_APP="docker"
 
     log "Docker is installed at $docker_path"
+
+    if check_docker_compose; then
+      local docker_compose_path=$(which docker-compose) 
+      log "Docker Compose is installed at $docker_compose_path"
+    else
+      install_missing_software "docker-compose"
+    fi
   fi
   
   if check_podman; then 
@@ -251,6 +272,13 @@ main() {
     CONTAINER_APP="podman"
 
     log "Podman is installed at $podman_path"
+
+    if check_podman_compose; then
+      local podman_compose_path=$(which podman-compose) 
+      log "Podman Compose is installed at $podman_compose_path"
+    else
+      install_missing_software "podman-compose"
+    fi
   fi
 
   # Both Podman and Docker ARE installed, so the user must decide
