@@ -102,10 +102,10 @@ dialog_wait() {
 
 dialog_input() {
   local r=""
-  if [[ "$3" == "password" ]]; then
-    r=$(dialog --title "$1" --insecure --passwordbox "$2" 8 28 "${r}" 3>&1 1>&2 2>&3 3>&-)
+  if [[ "$3" == "password" || "$3" == "pass" || "$3" == "pwd" ]]; then
+    r=$(dialog --title "$1" --insecure --passwordbox "$2" 9 32 "${r}" 3>&1 1>&2 2>&3 3>&-)
   else
-    r=$(dialog --title "$1" --inputbox "$2" 8 28 "${r}" 3>&1 1>&2 2>&3 3>&-)
+    r=$(dialog --title "$1" --inputbox "$2" 9 32 "${r}" 3>&1 1>&2 2>&3 3>&-)
   fi
 
   echo "$r"
@@ -342,10 +342,10 @@ main() {
   response=$?
 
   if [[ "$response" -eq 0 ]]; then
-    local sql_host=internal_ip
-    local mongo_host=internal_ip
-    local rabbit_host=internal_ip
-    local redis_host=internal_ip
+    local sql_host="$internal_ip"
+    local mongo_host="$internal_ip"
+    local rabbit_host="$internal_ip"
+    local redis_host="$internal_ip"
   else
     local sql_host=$(dialog_input "Database Definition" "Enter SQL host")
     local mongo_host=$(dialog_input "Database Definition" "Enter MongoDB host")
