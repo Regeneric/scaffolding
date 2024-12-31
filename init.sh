@@ -234,6 +234,7 @@ start_container() {
 
 
 main() {
+  if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
   if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
@@ -294,7 +295,7 @@ main() {
     if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
     else CONTAINER_APP="podman"; fi
 
-    install_missing_software "$CONTAINER_APP"
+    install_missing_software "$CONTAINER_APP" "podman-compose"
   fi
 
   # Check if user canceled the installation
