@@ -551,6 +551,13 @@ EOF
   fi
 
 
+  if [[ ! -d "${current_path}/${source_code_location}" ]]; then
+    mkdir -p "${current_path}/${source_code_location}"
+    log "Directory ${current_path}/${source_code_location} has been created"
+  else
+    log "Directory ${current_path}/${source_code_location} already exists"
+  fi
+
   ###############################################################################
   # -- NOSQL 
   # -----------------------------------------------------------------------------
@@ -809,7 +816,7 @@ EOF
   if [[ -n "bind9/${zone_name}" ]]; then
     log "File bind9/${zone_name} has been created"
   else
-    log "Failed to bind9/${zone_name} file"
+    log "Failed to create bind9/${zone_name} file"
   fi
 
   local bind_access_network_file="bind9/named.conf.access_network"
@@ -829,6 +836,54 @@ EOF
 
   clear
   start_container "dns"
+
+
+  ###############################################################################
+  # -- CLEANUP 
+  # -----------------------------------------------------------------------------
+
+  rm -rf sql/init.sh
+  if [[ -z "sql/init.sh" ]]; then
+    log "File sql/init.sh has been removed"
+  else
+    log "Failed to remove sql/init.sh file"
+  fi
+
+  rm -rf nosql/init.sh
+  if [[ -z "nosql/init.sh" ]]; then
+    log "File nosql/init.sh has been removed"
+  else
+    log "Failed to remove nosql/init.sh file"
+  fi
+
+  rm -rf rabbitmq/init.sh
+  if [[ -z "rabbitmq/init.sh" ]]; then
+    log "File rabbitmq/init.sh has been removed"
+  else
+    log "Failed to remove rabbitmq/init.sh file"
+  fi
+
+  rm -rf .gitignore
+  if [[ -z ".gitignore" ]]; then
+    log "File .gitignore has been removed"
+  else
+    log "Failed to remove .gitignore file"
+  fi
+
+  rm -rf .git
+  if [[ ! -d ".git" ]]; then
+    log "Directory .git has been removed"
+  else
+    log "Failed to remove .git directory"
+  fi
+
+  rm -rf init.sh
+  if [[ -z "init.sh" ]]; then
+    log "File init.sh has been removed"
+  else
+    log "Failed to remove init.sh file"
+  fi
+
 
   log Configuration has been completed
 }
