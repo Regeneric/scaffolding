@@ -352,7 +352,10 @@ main() {
         elif [[ "$response" -eq 2 ]]; then 
           CONTAINER_APP="podman"
           break  
-        else continue; fi
+        else 
+          dialog --title "Error" --msgbox "You must select either package!" 5 39
+          continue
+        fi
       done
     fi
     
@@ -366,7 +369,10 @@ main() {
         elif [[ "$response" -eq 2 ]]; then 
           CONTAINER_APP="podman"
           break
-        else continue; fi
+        else 
+          dialog --title "Error" --msgbox "You must select either package!" 5 39
+          continue 
+        fi
       do
 
       install_missing_software "$CONTAINER_APP" "${CONTAINER_APP}-compose"
