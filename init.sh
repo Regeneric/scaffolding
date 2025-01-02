@@ -561,7 +561,7 @@ EOF
     keyFile: /data/db/keyFile
   net:
     port: 27017
-    bindIp: 127.0.0.1,${internal_ip}
+    bindIp: 127.0.0.1,${internal_ip%/*}
 EOF
 
   if [[ -n "$mongo_conf_file" ]]; then
@@ -716,10 +716,10 @@ EOF
 
   cat << EOF > "${nginx_sites_dir}/${domain_name}.conf"
   upstream 11b9509-6783478-bb37b70-f2617d0 {
-          server ${internal_ip}:8989;
+          server ${internal_ip%/*}:8989;
   }
   server {
-      listen              ${external_ip}:443 ssl ;
+      listen              ${external_ip%/*}:443 ssl ;
       server_name         ${domain_name};
       ssl_certificate     /etc/ssl/certs/${domain_name}.crt;
       ssl_certificate_key /etc/ssl/private/${domain_name}.key;
@@ -775,10 +775,10 @@ EOF
                         300 )          ; minimum TTL, seconds
 
   @       IN     NS     ns1.${domain_name}.
-  ns1     IN      A     ${internal_ip}
+  ns1     IN      A     ${external_ip%/*}
 
-  ${domain_name}      IN A ${internal_ip};
-  *.${domain_name}    IN A ${internal_ip};
+  ${domain_name}      IN A ${external_ip%/*};
+  *.${domain_name}    IN A ${external_ip%/*};
 EOF
 
   if [[ -n "bind9/${zone_name}" ]]; then
