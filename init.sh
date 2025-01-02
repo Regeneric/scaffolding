@@ -236,7 +236,9 @@ start_container() {
 
 
 main() {
-  if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
+  mkdir -p "$LOG_DIR"; sleep 1
+
+  # if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
   if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
@@ -395,10 +397,10 @@ main() {
   response=$?
 
   if [[ "$response" -eq 0 ]]; then
-    local sql_host="$internal_ip"
-    local mongo_host="$internal_ip"
-    local rabbit_host="$internal_ip"
-    local redis_host="$internal_ip"
+    local sql_host="${internal_ip%/*}"
+    local mongo_host="${internal_ip%/*}"
+    local rabbit_host="${internal_ip%/*}"
+    local redis_host="${internal_ip%/*}"
   else
     local sql_host=$(dialog_input "Database Definition" "Enter SQL host")
     local mongo_host=$(dialog_input "Database Definition" "Enter MongoDB host")
@@ -426,17 +428,17 @@ main() {
   cat << EOF > "$DOCKER_ENV_FILE_LOCATION"
   ENV_FILE=${current_path}/config/docker.env
 
-  CONFIG_FOLDER=${current_path}/config
+  CONFIG_FOLDER=${current_path}
   NGINX_CONF_LOCATION=${current_path}/nginx
   BIND_CONF_LOCATION=${current_path}/bind9
   SOURCE_CODE_LOCATION=${current_path}/${source_code_location}
 
   DOMAIN_NAME=${domain_name}
 
-  INTERNAL_IP=${internal_ip}
+  INTERNAL_IP=${internal_ip%/*}
   INTERNAL_MASK=${internal_ip##*/}
 
-  EXTERNAL_IP=${external_ip}
+  EXTERNAL_IP=${external_ip%/*}
   EXTERNAL_MASK=${external_ip##*/}
 
   SQL_USER=${sql_user_name}
