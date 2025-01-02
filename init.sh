@@ -409,11 +409,11 @@ main() {
       3) SQL_DATABASE="postgres" ;;
     esac
 
-    if [[ "$?" -eq 0 ]]; then
-      clear
-      log "Config process has been canceled by user"
-      exit 0
-    fi
+    # if [[ "$?" -eq 0 ]]; then
+    #   clear
+    #   log "Config process has been canceled by user"
+    #   exit 0
+    # fi
   fi
   log "Selected $SQL_DATABASE as SQL databse"
   
