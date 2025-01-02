@@ -344,18 +344,32 @@ main() {
 
     # Both Podman and Docker ARE installed, so the user must decide
     if [[ "$docker_installed" == "true" && "$podman_installed" == "true" ]]; then
-      local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
-      if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
-      else CONTAINER_APP="podman"; fi
+      while true; do
+        local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
+        if [[ "$response" -eq 1 ]]; then 
+          CONTAINER_APP="docker"
+          break
+        elif [[ "$response" -eq 2 ]]; then 
+          CONTAINER_APP="podman"
+          break  
+        else continue; fi
+      done
     fi
     
     # Both Podman and Docker ARE NOT installed, so the user must decide
     if [[ "$docker_installed" != "true" && "$podman_installed" != "true" ]]; then
-      local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
-      if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
-      else CONTAINER_APP="podman"; fi
+      while true; do
+        local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
+        if [[ "$response" -eq 1 ]]; then 
+          CONTAINER_APP="docker"
+          break
+        elif [[ "$response" -eq 2 ]]; then 
+          CONTAINER_APP="podman"
+          break
+        else continue; fi
+      do
 
-      install_missing_software "$CONTAINER_APP" "podman-compose"
+      install_missing_software "$CONTAINER_APP" "${CONTAINER_APP}-compose"
     fi
   fi
 
