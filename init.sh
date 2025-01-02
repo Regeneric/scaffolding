@@ -155,7 +155,7 @@ install_missing_software() {
     ;;
   esac
 
-  log "Packages ${packages[@]} has been installed"
+  log "Packages ${packages[@]} have been installed"
   sudo_pwd=""
 }
 
@@ -169,7 +169,7 @@ trap_int() {
 
 check_package() {
   if command -v "$1" >/dev/null 2>&1; then
-    log "Pakcage $1 has been found"
+    log "Package $1 has been found"
     return 0
   else return 1; fi 
 }
@@ -217,11 +217,13 @@ check_env_file() {
 }
 
 start_container() {
+  local cp=$(pwd)
+
   if [[ "$(${CONTAINER_APP} ps -aqf name=${1})" ]]; then
     "${CONTAINER_APP}" rm -f ${1}
-    "${CONTAINER_APP}-compose --env-file config/docker.env -f docker/compose.yml up -d ${1}"
+    "${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}"
   else
-    "${CONTAINER_APP}-compose --env-file config/docker.env -f docker/compose.yml up -d ${1}"
+    "${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}"
   fi
 
   if [[ "$?" -eq 0 ]]; then
@@ -400,9 +402,9 @@ main() {
 
   local current_path=$(pwd)
   cat << EOF > "$DOCKER_ENV_FILE_LOCATION"
-  ENV_FILE=config/docker.env
+  ENV_FILE=${current_path}/config/docker.env
 
-  CONFIG_FOLDER=${current_path}
+  CONFIG_FOLDER=${current_path}/config
   NGINX_CONF_LOCATION=${current_path}/nginx
   BIND_CONF_LOCATION=${current_path}/bind9
   SOURCE_CODE_LOCATION=${current_path}/${source_code_location}
