@@ -843,28 +843,28 @@ EOF
   # -----------------------------------------------------------------------------
 
   rm -rf sql/init.sh
-  if [[ -z "sql/init.sh" ]]; then
+  if [[ ! -f "sql/init.sh" ]]; then
     log "File sql/init.sh has been removed"
   else
     log "Failed to remove sql/init.sh file"
   fi
 
   rm -rf nosql/init.sh
-  if [[ -z "nosql/init.sh" ]]; then
+  if [[ ! -f "nosql/init.sh" ]]; then
     log "File nosql/init.sh has been removed"
   else
     log "Failed to remove nosql/init.sh file"
   fi
 
   rm -rf rabbitmq/init.sh
-  if [[ -z "rabbitmq/init.sh" ]]; then
+  if [[ ! -f "rabbitmq/init.sh" ]]; then
     log "File rabbitmq/init.sh has been removed"
   else
     log "Failed to remove rabbitmq/init.sh file"
   fi
 
   rm -rf .gitignore
-  if [[ -z ".gitignore" ]]; then
+  if [[ ! -f ".gitignore" ]]; then
     log "File .gitignore has been removed"
   else
     log "Failed to remove .gitignore file"
@@ -878,14 +878,14 @@ EOF
   fi
 
   rm -rf init.sh
-  if [[ -z "init.sh" ]]; then
+  if [[ ! -f "init.sh" ]]; then
     log "File init.sh has been removed"
   else
     log "Failed to remove init.sh file"
   fi
 
 
-  log Configuration has been completed
+  log "Configuration has been completed"
 }
 
 handle_flags "$@"
