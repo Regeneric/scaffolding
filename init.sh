@@ -7,7 +7,7 @@ BASENAME=$(basename "${0%%.sh}")						            # Extract the script's base na
 DIR=$(dirname $(realpath "$0"))							            # Get the directory of the script
 HOSTNAME=$(hostname -s | tr '[:upper:]' '[:lower:]')	  # Convert hostname to lowercase
 DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)	  # Detect the Linux distribution
-LOG_DIR="logs/setup"
+LOG_DIR="${DIR}/logs/setup"
 LOG=$(mktemp "$LOG_DIR/${BASENAME}_log-XXXXXXXX")				# Create a temporary log file
 TERMINAL_HEIGHT=$(tput lines)							              # Fetch the terminal height for dynamic dialog adjustments
 
@@ -220,10 +220,10 @@ start_container() {
   local cp=$(pwd)
 
   if [[ "$(${CONTAINER_APP} ps -aqf name=${1})" ]]; then
-    "${CONTAINER_APP}" rm -f ${1}
-    "${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}"
+    ${CONTAINER_APP} rm -f ${1}
+    ${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}
   else
-    "${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}"
+    ${CONTAINER_APP}-compose --env-file ${cp}/config/docker.env -f ${cp}/docker/compose.yml up -d ${1}
   fi
 
   if [[ "$?" -eq 0 ]]; then
