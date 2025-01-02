@@ -236,7 +236,6 @@ start_container() {
 
 
 main() {
-  if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
   if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
@@ -474,13 +473,13 @@ EOF
   local mongo_data_dir="nosql/mongodb/data"
   if [[ ! -d "$mongo_data_dir" ]]; then 
     mkdir -p "$mongo_data_dir" 
-    log "Directory "$mongo_data_dir" has been created"  
+    log "Directory $mongo_data_dir has been created"  
   fi
 
   local mongo_backup_dir="nosql/mongodb/backup"
   if [[ ! -d "$mongo_backup_dir" ]]; then 
     mkdir -p "$mongo_backup_dir" 
-    log "Directory $$mongo_backup_dir has been created"  
+    log "Directory $mongo_backup_dir has been created"  
   fi
 
 
@@ -534,7 +533,7 @@ EOF
 
   local mongo_create_database_file="nosql/mongodb/init/create_database.js" 
   cat << EOF > "$mongo_create_database_file"
-  db = db.getSiblingDB('${database_name}');
+  db = db.getSiblingDB('${mongo_database_name}');
 EOF
   log "File $mongo_create_database_file has been created"
 
@@ -551,6 +550,7 @@ EOF
 
   log "Permissions for MongoDB files and directories have been set"
 
+  clear
   start_container "mongodb"
   sleep 15
 
@@ -562,6 +562,7 @@ EOF
     exit 1
   fi
 
+  clear
   start_container "redis"
 
 
@@ -569,6 +570,7 @@ EOF
   # -- SQL 
   # -----------------------------------------------------------------------------
 
+  clear
   start_container "$sql_database"
   sleep 15
 
@@ -585,6 +587,7 @@ EOF
   # -- RABBITMQ 
   # -----------------------------------------------------------------------------
 
+  clear
   start_container "rabbitmq"
   sleep 15
 
@@ -604,13 +607,13 @@ EOF
   local nginx_sites_dir="nginx/sites"
   if [[ ! -d "$nginx_sites_dir" ]]; then 
     mkdir -p "$nginx_sites_dir" 
-    log "Directory "$nginx_sites_dir" has been created"  
+    log "Directory $nginx_sites_dir has been created"  
   fi
 
   local nginx_ssl_dir="nginx/ssl"
   if [[ ! -d "$nginx_ssl_dir" ]]; then 
     mkdir -p "$nginx_ssl_dir" 
-    log "Directory "$nginx_ssl_dir" has been created"  
+    log "Directory $nginx_ssl_dir has been created"  
   fi
 
 
@@ -636,6 +639,7 @@ EOF
   log "File ${nginx_sites_dir}/${domain_name}.conf has been created"
 
   openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout nginx/ssl/${domain_name}.key -out nginx/ssl/${domain_name}.crt
+  clear
   start_container "reverse_proxy"
 
 
@@ -673,6 +677,7 @@ EOF
 EOF
   log "File $bind_access_network_file has been created"
 
+  clear
   start_container "dns"
 }
 
