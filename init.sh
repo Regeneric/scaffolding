@@ -373,7 +373,7 @@ main() {
           dialog --title "Error" --msgbox "You must select either package!" 5 39
           continue 
         fi
-      do
+      done
 
       install_missing_software "$CONTAINER_APP" "${CONTAINER_APP}-compose"
     fi
