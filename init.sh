@@ -44,11 +44,11 @@ usage() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
   echo " -h --help          Display this message"
-  echo " --docker           Use Docker and Docker Compose"
-  echo " --podman           Use Podman and Podman Compose"
-  echo " --mariadb          Use MariaDB as SQL database"
-  echo " --mysql            Use MySQL as SQL database"
-  echo " --postgres         Use PostgreSQL as SQL database"
+  echo " --docker           Use Docker and Docker Compose     DO NOT USE WITH --podman FLAG!"
+  echo " --podman           Use Podman and Podman Compose     DO NOT USE WITH --docker FLAG!"
+  echo " --mariadb          Use MariaDB as SQL database       DO NOT USE WITH --mysql   OR --postgres FLAG!"
+  echo " --mysql            Use MySQL as SQL database         DO NOT USE WITH --mariadb OR --postgres FLAG!"
+  echo " --postgres         Use PostgreSQL as SQL database    DO NOT USE WITH --mysql   OR --mariadb  FLAG!"
 }
 
 # Like: --my --ass -i -s --fucking-awesome
@@ -60,24 +60,49 @@ handle_flags() {
         exit 1
       ;;
       --docker)
-        CONTAINER_APP="docker"
-        shift
+        if [[ -z "$CONTAINER_APP" ]]; then
+          CONTAINER_APP="docker"
+          shift
+        else
+          usage
+          exit 1
+        fi
       ;;
       --podman)
-        CONTAINER_APP="podman"
-        shift
+        if [[ -z "$CONTAINER_APP" ]]; then
+          CONTAINER_APP="podman"
+          shift
+        else
+          usage
+          exit 1
+        fi
       ;;
       --mariadb)
-        SQL_DATABASE="mariadb"
-        shift
+        if [[ -z "$SQL_DATABASE" ]]; then
+          SQL_DATABASE="mariadb"
+          shift
+        else
+          usage
+          exit 1
+        fi
       ;;
       --mysql)
-        SQL_DATABASE="mysql"
-        shift
+        if [[ -z "$SQL_DATABASE" ]]; then
+          SQL_DATABASE="mysql"
+          shift
+        else
+          usage
+          exit 1
+        fi
       ;;
       --postgres)
-        SQL_DATABASE="postgres"
-        shift
+        if [[ -z "$SQL_DATABASE" ]]; then
+          SQL_DATABASE="postgres"
+          shift
+        else
+          usage
+          exit 1
+        fi
       ;;
       *)
         usage
@@ -804,6 +829,8 @@ EOF
 
   clear
   start_container "dns"
+
+  log Configuration has been completed
 }
 
 handle_flags "$@"
