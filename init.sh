@@ -21,6 +21,7 @@ VALID_PASSWORD_REGEX="^[a-zA-Z0-9_@#\$%\!\^&*()-+=-]+$"
 
 DOCKER_ENV_FILE_LOCATION="config/docker.env"
 CONTAINER_APP=""
+SQL_DATABASE=""
 
 # Define Docker authentication paths based on the detected distribution
 case "${DISTRO}" in
@@ -43,7 +44,11 @@ usage() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
   echo " -h --help          Display this message"
-  echo " --config=file      Path to existing config file"
+  echo " --docker           Use Docker and Docker Compose"
+  echo " --podman           Use Podman and Podman Compose"
+  echo " --mariadb          Use MariaDB as SQL database"
+  echo " --mysql            Use MySQL as SQL database"
+  echo " --postgres         Use PostgreSQL as SQL database"
 }
 
 # Like: --my --ass -i -s --fucking-awesome
@@ -53,21 +58,31 @@ handle_flags() {
       -h | --help)
         usage
         exit 1
-        ;;
-      --config*)
-        if ! [[ $1 == *=* && -n ${1#*=} ]]; then
-          echo "No config file provided"
-          usage
-          exit 1
-        fi
-
-        load_config "${1#*=}"
+      ;;
+      --docker)
+        CONTAINER_APP="docker"
         shift
-        ;;
+      ;;
+      --podman)
+        CONTAINER_APP="podman"
+        shift
+      ;;
+      --mariadb)
+        SQL_DATABASE="mariadb"
+        shift
+      ;;
+      --mysql)
+        SQL_DATABASE="mysql"
+        shift
+      ;;
+      --postgres)
+        SQL_DATABASE="postgres"
+        shift
+      ;;
       *)
         usage
         exit 1
-        ;;
+      ;;
     esac
   done
 }
@@ -121,6 +136,11 @@ install_missing_software() {
       clear
       echo "$sudo_pwd" | sudo apt update 
       echo "$sudo_pwd" | sudo apt install -y "${packages[@]}"
+
+      if [[ "$?" -ne 0 ]]; then
+        log "Couldn't install one or more packages - ${packages[@]}"
+        exit 1
+      fi
     ;;
     arch | manjaro)
       if ! check_package yay; then
@@ -132,15 +152,30 @@ install_missing_software() {
 
       clear
       echo "$sudo_pwd" | sudo pacman -S --noconfirm "${packages[@]}"
+
+      if [[ "$?" -ne 0 ]]; then
+        log "Couldn't install one or more packages - ${packages[@]}"
+        exit 1
+      fi
     ;;
     fedora | centos | rhel)
       clear
       echo "$sudo_pwd" | sudo dnf install -y "${packages[@]}"
+
+      if [[ "$?" -ne 0 ]]; then
+        log "Couldn't install one or more packages - ${packages[@]}"
+        exit 1
+      fi
     ;;
     suse | opensuse | opensuse-leap)
       clear
       echo "$sudo_pwd" | sudo zypper refresh
       echo "$sudo_pwd" | sudo zypper install -y "${packages[@]}"
+
+      if [[ "$?" -ne 0 ]]; then
+        log "Couldn't install one or more packages - ${packages[@]}"
+        exit 1
+      fi
     ;;
     *)
       if [[ "$num_packages" -gt 5 ]]; then
@@ -275,50 +310,53 @@ main() {
   # -- CONTAINERIZATION 
   # -----------------------------------------------------------------------------
 
-  if check_docker; then 
-    local docker_installed="true";
-    local docker_path=$(which docker)
-    CONTAINER_APP="docker"
+  # If CONTAINER_APP variable isn't set check for Docker/Podman
+  if [[ -z "$CONTAINER_APP" ]]; then
+    if check_docker; then 
+      local docker_installed="true";
+      local docker_path=$(which docker)
+      CONTAINER_APP="docker"
 
-    log "Docker is installed at $docker_path"
+      log "Docker is installed at $docker_path"
 
-    if check_docker_compose; then
-      local docker_compose_path=$(which docker-compose) 
-      log "Docker Compose is installed at $docker_compose_path"
-    else
-      install_missing_software "docker-compose"
+      if check_docker_compose; then
+        local docker_compose_path=$(which docker-compose) 
+        log "Docker Compose is installed at $docker_compose_path"
+      else
+        install_missing_software "docker-compose"
+      fi
     fi
-  fi
-  
-  if check_podman; then 
-    local podman_installed="true"; 
-    local podman_path=$(which podman)
-    CONTAINER_APP="podman"
+    
+    if check_podman; then 
+      local podman_installed="true"; 
+      local podman_path=$(which podman)
+      CONTAINER_APP="podman"
 
-    log "Podman is installed at $podman_path"
+      log "Podman is installed at $podman_path"
 
-    if check_podman_compose; then
-      local podman_compose_path=$(which podman-compose) 
-      log "Podman Compose is installed at $podman_compose_path"
-    else
-      install_missing_software "podman-compose"
+      if check_podman_compose; then
+        local podman_compose_path=$(which podman-compose) 
+        log "Podman Compose is installed at $podman_compose_path"
+      else
+        install_missing_software "podman-compose"
+      fi
     fi
-  fi
 
-  # Both Podman and Docker ARE installed, so the user must decide
-  if [[ "$docker_installed" == "true" && "$podman_installed" == "true" ]]; then
-    local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
-    if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
-    else CONTAINER_APP="podman"; fi
-  fi
-  
-  # Both Podman and Docker ARE NOT installed, so the user must decide
-  if [[ "$docker_installed" != "true" && "$podman_installed" != "true" ]]; then
-    local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
-    if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
-    else CONTAINER_APP="podman"; fi
+    # Both Podman and Docker ARE installed, so the user must decide
+    if [[ "$docker_installed" == "true" && "$podman_installed" == "true" ]]; then
+      local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
+      if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
+      else CONTAINER_APP="podman"; fi
+    fi
+    
+    # Both Podman and Docker ARE NOT installed, so the user must decide
+    if [[ "$docker_installed" != "true" && "$podman_installed" != "true" ]]; then
+      local response=$(dialog --title "Containerization Software" --menu "Select the package you want to use\n" 10 32 6 1 "Docker" 2 "Podman" 3>&1 1>&2 2>&3)
+      if [[ "$response" -eq 1 ]]; then CONTAINER_APP="docker"
+      else CONTAINER_APP="podman"; fi
 
-    install_missing_software "$CONTAINER_APP" "podman-compose"
+      install_missing_software "$CONTAINER_APP" "podman-compose"
+    fi
   fi
 
   # Check if user canceled the installation
@@ -363,26 +401,27 @@ main() {
   # -- CONFIG FILE
   # -----------------------------------------------------------------------------
 
-  local sql_database=""
-  response=$(dialog --title "SQL Database" --menu "Select the package you want to use\n" 11 32 6 1 "MySQL" 2 "MariaDB" 3 "PostgreSQL" 3>&1 1>&2 2>&3)
-  case "$response" in
-    1) sql_database="mysql" ;;
-    2) sql_database="mariadb" ;;
-    3) sql_database="postgres" ;;
-  esac
-  log "Selected $sql_database as SQL databse"
+  if [[ -z "$SQL_DATABASE" ]]; then
+    response=$(dialog --title "SQL Database" --menu "Select the package you want to use\n" 11 32 6 1 "MySQL" 2 "MariaDB" 3 "PostgreSQL" 3>&1 1>&2 2>&3)
+    case "$response" in
+      1) SQL_DATABASE="mysql" ;;
+      2) SQL_DATABASE="mariadb" ;;
+      3) SQL_DATABASE="postgres" ;;
+    esac
+  fi
+  log "Selected $SQL_DATABASE as SQL databse"
   
-  find sql -mindepth 1 -maxdepth 1 -type d ! -name "$sql_database" -exec rm -rf {} +
-  log "Other SQL database directories has been removed"
+  find sql -mindepth 1 -maxdepth 1 -type d ! -name "$SQL_DATABASE" -exec rm -rf {} +
+  log "Other SQL database directories have been removed"
   
-  if [[ ! -d "sql/$sql_database/data" ]]; then 
-    mkdir -p sql/$sql_database/data; 
-    log "Directory sql/$sql_database/data has been created"  
+  if [[ ! -d "sql/$SQL_DATABASE/data" ]]; then 
+    mkdir -p sql/$SQL_DATABASE/data; 
+    log "Directory sql/$SQL_DATABASE/data has been created"  
   fi
 
-  if [[ ! -d "sql/$sql_database/backup" ]]; then 
-    mkdir -p sql/$sql_database/backup; 
-    log "Directory sql/$sql_database/backup has been created"  
+  if [[ ! -d "sql/$SQL_DATABASE/backup" ]]; then 
+    mkdir -p sql/$SQL_DATABASE/backup; 
+    log "Directory sql/$SQL_DATABASE/backup has been created"  
   fi
 
   local source_code_location=$(dialog_input "General Config" "Source code location")
@@ -571,14 +610,14 @@ EOF
   # -----------------------------------------------------------------------------
 
   clear
-  start_container "$sql_database"
+  start_container "$SQL_DATABASE"
   sleep 15
 
   . sql/init.sh
   if [[ "$?" -eq 0 ]]; then
-    log "$sql_database init success"
+    log "$SQL_DATABASE init success"
   else
-    log "$sql_database init failure"
+    log "$SQL_DATABASE init failure"
     exit 1
   fi
 
