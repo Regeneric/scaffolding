@@ -247,6 +247,28 @@ main() {
   log "Configuration has started"
   touch config/init.lock
 
+  if ! check_package "sudo"; then
+    install_missing_software "sudo"
+    if [[ $? -eq 0 ]]; then 
+      log "Package sudo has been installed"
+    else
+      log "Failed to install package sudo"
+      clear
+      exit 1
+    fi
+  fi
+
+  if ! check_package "dialog"; then
+    install_missing_software "dialog"
+    if [[ $? -eq 0 ]]; then
+      log "Package dialog has been installed"
+    else
+      log "Failed to install package dialog"
+      clear
+      exit 1
+    fi
+  fi
+
   dialog --title "hkk's scaffolding" --msgbox "\n$(spacer 12)Welcome to the hkk's configuration tool.\n$(spacer 4)It'll setup dev environment for you (SQL, noSQL, DNS etc.)\n" 8 69
 
 
