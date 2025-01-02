@@ -271,14 +271,16 @@ start_container() {
 
 
 main() {
+  log "Configuration has started"
+
   if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
+    log "THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!"
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
     clear
     exit 1
   fi
 
-  log "Configuration has started"
   touch config/init.lock
 
   if ! check_package "sudo"; then
@@ -418,16 +420,24 @@ main() {
   log "Selected $SQL_DATABASE as SQL databse"
   
   find sql -mindepth 1 -maxdepth 1 -type d ! -name "$SQL_DATABASE" -exec rm -rf {} +
-  log "Other SQL database directories have been removed"
+  if [[ "$?" -eq 0 ]]; then
+    log "Other SQL database directories have been removed"
+  else
+    log "Other SQL database directories haven't been removed"
+  fi
   
   if [[ ! -d "sql/$SQL_DATABASE/data" ]]; then 
     mkdir -p sql/$SQL_DATABASE/data; 
     log "Directory sql/$SQL_DATABASE/data has been created"  
+  else
+    log "Directory sql/$SQL_DATABASE/data already exists"
   fi
 
   if [[ ! -d "sql/$SQL_DATABASE/backup" ]]; then 
     mkdir -p sql/$SQL_DATABASE/backup; 
     log "Directory sql/$SQL_DATABASE/backup has been created"  
+  else
+    log "Directory sql/$SQL_DATABASE/backup already exists"
   fi
 
   local source_code_location=$(dialog_input "General Config" "Source code location")
@@ -508,7 +518,12 @@ main() {
   REDIS_HOST=${redis_host}
   REDIS_PORT=6379
 EOF
-  log "File $DOCKER_ENV_FILE_LOCATION has been created"
+
+  if [[ -n "$DOCKER_ENV_FILE_LOCATION" ]]; then
+    log "File $DOCKER_ENV_FILE_LOCATION has been created"
+  else
+    log "Failed to create $DOCKER_ENV_FILE_LOCATION file"
+  fi
 
 
   ###############################################################################
@@ -519,12 +534,16 @@ EOF
   if [[ ! -d "$mongo_data_dir" ]]; then 
     mkdir -p "$mongo_data_dir" 
     log "Directory $mongo_data_dir has been created"  
+  else
+    log "Directory $mongo_data_dir already exists"
   fi
 
   local mongo_backup_dir="nosql/mongodb/backup"
   if [[ ! -d "$mongo_backup_dir" ]]; then 
     mkdir -p "$mongo_backup_dir" 
     log "Directory $mongo_backup_dir has been created"  
+  else
+    log "Directory $mongo_backup_dir already exists"
   fi
 
 
@@ -544,7 +563,13 @@ EOF
     port: 27017
     bindIp: 127.0.0.1,${internal_ip}
 EOF
-  log "File $mongo_conf_file has been created"
+
+  if [[ -n "$mongo_conf_file" ]]; then
+    log "File $mongo_conf_file has been created"
+  else
+    log "Failed to create $mongo_conf_file file"
+  fi
+
 
   local mongo_create_temp_admin_file="nosql/mongodb/init/create_temp_admin.js"
   cat << EOF > "$mongo_create_temp_admin_file"
@@ -554,7 +579,13 @@ EOF
       roles: [{role: 'root', db: 'admin'}]
   });
 EOF
-  log "File $mongo_create_temp_admin_file has been created"
+
+  if [[ -n "$mongo_create_temp_admin_file" ]]; then
+    log "File $mongo_create_temp_admin_file has been created"
+  else
+    log "Failed to create $mongo_create_temp_admin_file file"
+  fi
+
 
   local mongo_create_root_file="nosql/mongodb/init/create_root.js"
   cat << EOF > "$mongo_create_root_file"
@@ -564,7 +595,13 @@ EOF
       roles: [{role: "remote_role", db: "admin"}],
   });
 EOF
-  log "File $mongo_create_root_file has been created"
+
+  if [[ -n "$mongo_create_root_file" ]]; then
+    log "File $mongo_create_root_file has been created"
+  else
+    log "Failed to create $mongo_create_root_file file"
+  fi
+
 
   local mongo_setup_replicaset_file="nosql/mongodb/init/setup_replicaset.js"
   cat << EOF > "$mongo_setup_replicaset_file"
@@ -574,13 +611,24 @@ EOF
       members: [{ _id: 0, host : "mongo-mongo1.${domain_name}:27017"}]
   });
 EOF
-  log "File $mongo_setup_replicaset_file has been created"
+
+  if [[ -n "$mongo_setup_replicaset_file" ]]; then
+    log "File $mongo_setup_replicaset_file has been created"
+  else
+    log "Failed to create $mongo_setup_replicaset_file file"
+  fi
+
 
   local mongo_create_database_file="nosql/mongodb/init/create_database.js" 
   cat << EOF > "$mongo_create_database_file"
   db = db.getSiblingDB('${mongo_database_name}');
 EOF
-  log "File $mongo_create_database_file has been created"
+
+  if [[ -n "$mongo_create_database_file" ]]; then
+    log "File $mongo_create_database_file has been created"
+  else
+    log "Failed to create $mongo_create_database_file file"
+  fi
 
 
   openssl rand -base64 756 > nosql/mongodb/keyFile
@@ -653,12 +701,16 @@ EOF
   if [[ ! -d "$nginx_sites_dir" ]]; then 
     mkdir -p "$nginx_sites_dir" 
     log "Directory $nginx_sites_dir has been created"  
+  else
+    log "Directory $nginx_sites_dir already exists"
   fi
 
   local nginx_ssl_dir="nginx/ssl"
   if [[ ! -d "$nginx_ssl_dir" ]]; then 
     mkdir -p "$nginx_ssl_dir" 
     log "Directory $nginx_ssl_dir has been created"  
+  else
+    log "Directory $nginx_ssl_dir already exists"
   fi
 
 
@@ -681,9 +733,27 @@ EOF
       }
   }
 EOF
-  log "File ${nginx_sites_dir}/${domain_name}.conf has been created"
+  
+  if [[ -n "${nginx_sites_dir}/${domain_name}.conf" ]]; then
+    log "File ${nginx_sites_dir}/${domain_name}.conf has been created"
+  else
+    log "Failed to create ${nginx_sites_dir}/${domain_name}.conf file"
+  fi
 
   openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout nginx/ssl/${domain_name}.key -out nginx/ssl/${domain_name}.crt
+
+  if [[ -n "nginx/ssl/${domain_name}.crt" ]]; then
+    log "File nginx/ssl/${domain_name}.crt has been created"
+  else
+    log "Failed to create nginx/ssl/${domain_name}.crt file"
+  fi
+
+  if [[ -n "nginx/ssl/${domain_name}.key" ]]; then
+    log "File nginx/ssl/${domain_name}.key has been created"
+  else
+    log "Failed to create nginx/ssl/${domain_name}.key file"
+  fi
+
   clear
   start_container "reverse_proxy"
 
@@ -710,7 +780,12 @@ EOF
   ${domain_name}      IN A ${internal_ip};
   *.${domain_name}    IN A ${internal_ip};
 EOF
-  log "File bind9/${zone_name} has been created"
+
+  if [[ -n "bind9/${zone_name}" ]]; then
+    log "File bind9/${zone_name} has been created"
+  else
+    log "Failed to bind9/${zone_name} file"
+  fi
 
   local bind_access_network_file="bind9/named.conf.access_network"
   cat << EOF > "$bind_access_network_file"
@@ -720,7 +795,12 @@ EOF
       allow-update { none; };
   };
 EOF
-  log "File $bind_access_network_file has been created"
+
+  if [[ -n "$bind_access_network_file" ]]; then
+    log "File $bind_access_network_file has been created"
+  else
+    log "Failed to $bind_access_network_file file"
+  fi
 
   clear
   start_container "dns"
