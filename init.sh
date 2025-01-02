@@ -8,7 +8,6 @@ DIR=$(dirname $(realpath "$0"))							            # Get the directory of the scr
 HOSTNAME=$(hostname -s | tr '[:upper:]' '[:lower:]')	  # Convert hostname to lowercase
 DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)	  # Detect the Linux distribution
 LOG_DIR="${DIR}/logs/setup"
-LOG=$(mktemp "$LOG_DIR/${BASENAME}_log-XXXXXXXX")				# Create a temporary log file
 TERMINAL_HEIGHT=$(tput lines)							              # Fetch the terminal height for dynamic dialog adjustments
 
 # Recommended minimum system requirements - based on what I think should be enough
@@ -80,6 +79,7 @@ idate() {
 log() {
   if [[ ! -d "$LOG_DIR" ]]; then
     mkdir -p "$LOG_DIR"
+    LOG=$(mktemp "$LOG_DIR/${BASENAME}_log-XXXXXXXX")				# Create a temporary log file
   fi
 
   if [[ ! -s "$LOG" ]]; then
@@ -236,9 +236,7 @@ start_container() {
 
 
 main() {
-  mkdir -p "$LOG_DIR"; sleep 1
-
-  # if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
+  if [[ ! -d "$LOG_DIR" ]]; then mkdir -p "$LOG_DIR"; fi
   if [[ ! -d "config" ]]; then mkdir config; fi
   if [[ -f "config/init.lock" ]]; then
     dialog --title "RUN IT ONLY ONCE" --msgbox "\n$(spacer 4)THIS CONFIGURATION TOOL IS DESIGNED TO BE RUN ONLY ONCE!\n" 8 69
