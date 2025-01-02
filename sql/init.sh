@@ -6,7 +6,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	exit 1
 fi
 
-case "$sql_database" in
+case "$SQL_DATABASE" in
   mysql) 
     container_name="mysql" 
     command_name="mysql"
@@ -21,7 +21,7 @@ case "$sql_database" in
   ;;
 esac
 
-if [[ "$sql_database" == "mysql" || "$sql_database" == "mariadb" ]]; then
+if [[ "$SQL_DATABASE" == "mysql" || "$SQL_DATABASE" == "mariadb" ]]; then
   "$CONTAINER_APP" exec "$container_name" "$command_name" -u root -p"${sql_root_password}" -e "CREATE USER '${sql_user_name}'@'%' IDENTIFIED BY '${sql_user_password}';"
   "$CONTAINER_APP" exec "$container_name" "$command_name" -u root -p"${sql_root_password}" -e "GRANT ALL PRIVILEGES ON *.* TO '${sql_user_name}'@'%';"
   "$CONTAINER_APP" exec "$container_name" "$command_name" -u root -p"${sql_root_password}" -e "FLUSH PRIVILEGES;"
