@@ -885,6 +885,13 @@ EOF
     log "Failed to remove .git directory"
   fi
 
+  rm -rf README.md
+  if [[ ! -f "README.md" ]]; then
+    log "File README.md has been removed"
+  else
+    log "Failed to remove README.md file"
+  fi
+
   rm -rf init.sh
   if [[ ! -f "init.sh" ]]; then
     log "File init.sh has been removed"
