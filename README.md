@@ -1,3 +1,5 @@
+Template to deploy dev environment with MariaDB/mySQL/Postgres, MongoDB, Redis, RabbitMQ, bind9 and nginx
+
 ```
 Usage: init.sh [OPTIONS]
 Options:

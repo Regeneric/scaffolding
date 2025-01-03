@@ -538,10 +538,6 @@ main() {
   RABBIT_USER=${rabbitmq_user_name}
   RABBIT_PASS=${rabbitmq_user_password}
   RABBIT_HOST=${rabbit_host}
-
-  REDIS_PASS=${redis_user_password}
-  REDIS_HOST=${redis_host}
-  REDIS_PORT=6379
 EOF
 
   if [[ -n "$DOCKER_ENV_FILE_LOCATION" ]]; then
