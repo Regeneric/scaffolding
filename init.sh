@@ -687,8 +687,16 @@ EOF
     exit 1
   fi
 
+
+  ###############################################################################
+  # -- REDIS 
+  # -----------------------------------------------------------------------------
+
+  sed -i "s/{{INTERNAL_IP}}/${internal_ip%/*}/g" nosql/keydb/keydb.conf
+  sed -i "s/{{REDIS_PASS}}/${redis_user_password}/g" nosql/keydb/keydb.conf
+
   clear
-  start_container "redis"
+  start_container "keydb"
 
 
   ###############################################################################
@@ -856,11 +864,11 @@ EOF
     log "Failed to remove nosql/init.sh file"
   fi
 
-  rm -rf rabbitmq/init.sh
-  if [[ ! -f "rabbitmq/init.sh" ]]; then
-    log "File rabbitmq/init.sh has been removed"
+  rm -rf rabbitmq
+  if [[ ! -d "rabbitmq" ]]; then
+    log "Directory rabbitmq has been removed"
   else
-    log "Failed to remove rabbitmq/init.sh file"
+    log "Failed to remove rabbitmq directory"
   fi
 
   rm -rf .gitignore

@@ -39,18 +39,19 @@ services:
       - ${CONFIG_FOLDER}/nosql/mongodb/backup:/mongo_backup
     command: ["mongod", "--bind_ip", "127.0.0.1,${INTERNAL_IP}", "--port", "${MONGO_PORT}", "--directoryperdb", "--wiredTigerCacheSizeGB", "1", "--journal", "--keyFile=/data/db/keyFile"]
     <<: *default_config
-  redis:
-    hostname: redis1
-    container_name: redis
-    image: docker.io/redis:latest
+  keydb:
+    hostname: keydb1
+    container_name: keydb
+    image: docker.io/eqalpha/keydb:latest
     restart: always
     env_file: ${ENV_FILE}
     ports:
       - ${INTERNAL_IP}:${REDIS_PORT}:${REDIS_PORT}
     volumes: 
-      - ${CONFIG_FOLDER}/nosql/redis/data:/data
-      - ${CONFIG_FOLDER}/nosql/redis/backup:/redis_backup
-    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASS}
+      - ${CONFIG_FOLDER}/nosql/keydb/keydb.conf:/etc/keydb/keydb.conf
+      - ${CONFIG_FOLDER}/nosql/keydb/data:/data
+      - ${CONFIG_FOLDER}/nosql/keydb/backup:/redis_backup
+    command: keydb-server /etc/keydb/keydb.conf
   mariadb:
     hostname: mariadb1
     container_name: mariadb
